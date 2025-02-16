@@ -28,9 +28,9 @@ class TestNoteLogic(TestBaseClass):
         response = self.auth_author.post(NOTES_ADD_URL, data=FORM_DATA)
         self.assertFormError(
             response,
-            'form',
-            'slug',
-            self.note.slug + WARNING
+            form='form',
+            field='text',
+            errors=self.note.slug + WARNING
         )
         self.assertEqual(Note.objects.count(), note_count)
 
