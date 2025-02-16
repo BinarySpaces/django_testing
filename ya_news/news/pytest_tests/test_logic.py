@@ -50,7 +50,7 @@ def test_user_cant_use_bad_words(author_client, news_detail):
     response = author_client.post(news_detail, data=bad_word_text)
     form = response.context['form']
     after_comment_count = Comment.objects.count()
-    assertFormError(form, 'text', WARNING)
+    assertFormError(form, 'text', [WARNING])
     assert before_comment_count == after_comment_count
 
 
