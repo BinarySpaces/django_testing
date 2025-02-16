@@ -30,7 +30,7 @@ class TestNoteLogic(TestBaseClass):
             response,
             'form',
             'slug',
-            errors=[self.note.slug + WARNING]
+            self.note.slug + WARNING
         )
         self.assertEqual(Note.objects.count(), note_count)
 
