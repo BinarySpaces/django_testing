@@ -13,15 +13,28 @@ FORM_DATA = {'text': 'Comment text'}
 BAD_WORDS = ('редиска', 'негодяй')
 WARNING = 'Не ругайтесь!'
 
+
 def test_anonymous_user_cant_create_comment(
         client,
         news_detail,
         redirect_url_anonymous_user_comments,
 ):
-    before_response_comments = list(Comment.objects.values('id', 'text', 'news', 'author', 'created'))
+    before_response_comments = list(Comment.objects.values(
+        'id',
+        'text',
+        'news',
+        'author',
+        'created'
+    ))
     response = client.post(news_detail, data=FORM_DATA)
     assertRedirects(response, redirect_url_anonymous_user_comments)
-    assert before_response_comments == list(Comment.objects.values('id', 'text', 'news', 'author', 'created'))
+    assert before_response_comments == list(Comment.objects.values(
+        'id',
+        'text',
+        'news',
+        'author',
+        'created'
+    ))
 
 
 def test_auth_user_can_create_comment(
@@ -52,10 +65,22 @@ def test_auth_user_can_create_comment(
     BAD_WORDS,
 )
 def test_user_cant_use_bad_words(author_client, news_detail, bad_word):
-    original_comments = list(Comment.objects.values('id', 'text', 'news', 'author', 'created'))
+    original_comments = list(Comment.objects.values(
+        'id',
+        'text',
+        'news',
+        'author',
+        'created'
+    ))
     response = author_client.post(news_detail, data={'text': bad_word})
     assertFormError(response, form='form', field='text', errors=WARNING)
-    assert original_comments == list(Comment.objects.values('id', 'text', 'news', 'author', 'created'))
+    assert original_comments == list(Comment.objects.values(
+        'id',
+        'text',
+        'news',
+        'author',
+        'created'
+    ))
 
 
 def test_author_can_edit_comment(
@@ -72,7 +97,6 @@ def test_author_can_edit_comment(
     assert updated_comment.text == FORM_DATA['text']
     assert updated_comment.author == original_author
     assert updated_comment.news == original_news
-
 
 
 def test_author_can_delete_comment(

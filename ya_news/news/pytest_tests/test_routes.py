@@ -32,8 +32,18 @@ pytestmark = pytest.mark.django_db
         (COMMENT_EDIT_URL, 'not_author_client', HTTPStatus.NOT_FOUND, None),
         (COMMENT_DELETE_URL, 'author_client', HTTPStatus.OK, None),
         (COMMENT_DELETE_URL, 'not_author_client', HTTPStatus.NOT_FOUND, None),
-        (COMMENT_EDIT_URL, CLIENT.get, HTTPStatus.FOUND, REDIRECT_URL_EDIT_COMMENT),
-        (COMMENT_DELETE_URL, CLIENT.get, HTTPStatus.FOUND, REDIRECT_URL_DELETE_COMMENT),
+        (
+            COMMENT_EDIT_URL,
+            CLIENT.get,
+            HTTPStatus.FOUND,
+            REDIRECT_URL_EDIT_COMMENT
+        ),
+        (
+            COMMENT_DELETE_URL,
+            CLIENT.get,
+            HTTPStatus.FOUND,
+            REDIRECT_URL_DELETE_COMMENT
+        ),
     ),
 )
 def test_pages_availability_for_users(

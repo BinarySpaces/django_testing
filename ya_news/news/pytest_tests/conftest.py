@@ -20,6 +20,7 @@ COMMENT_DELETE_URL = '/delete_comment/1/'
 REDIRECT_URL_EDIT_COMMENT = '/auth/login/?next=/edit_comment/1/'
 REDIRECT_URL_DELETE_COMMENT = '/auth/login/?next=/delete_comment/1/'
 
+
 @pytest.fixture
 def author(django_user_model):
     return django_user_model.objects.create(username='Autor')
