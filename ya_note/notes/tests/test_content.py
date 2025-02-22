@@ -11,14 +11,22 @@ from .utils import (
 class TestNotesList(TestBaseClass):
 
     def test_note_in_list(self):
-        response = self.auth_author.get(NOTES_LIST_URL)
-        notes_queryset = response.context['object_list']
-        self.assertIn(self.note, notes_queryset)
+        notes = self.auth_author.get(NOTES_LIST_URL).context['object_list']
+        self.assertIn(self.note, notes)
+        note_in_list = next(
+            (note for note in notes if note.id == self.note.id), None
+        )
+        self.assertIsNotNone(note_in_list)
+        self.assertEqual(note_in_list.title, self.note.title)
+        self.assertEqual(note_in_list.text, self.note.text)
+        self.assertEqual(note_in_list.slug, self.note.slug)
+        self.assertEqual(note_in_list.author, self.note.author)
 
     def test_notes_do_not_mix_for_author(self):
-        response = self.auth_other_user.get(NOTES_LIST_URL)
-        object_list = response.context['object_list']
-        self.assertNotIn(self.note, object_list)
+        self.assertNotIn(
+            self.note,
+            self.auth_other_user.get(NOTES_LIST_URL).context['object_list']
+        )
 
     def test_existing_form(self):
         urls = (
@@ -27,6 +35,6 @@ class TestNotesList(TestBaseClass):
         )
         for url in urls:
             with self.subTest(url=url):
-                response = self.auth_author.get(url)
-                self.assertIn('form', response.context)
-                self.assertIsInstance(response.context['form'], NoteForm)
+                self.assertIsInstance(
+                    self.auth_author.get(url).context.get('form'), NoteForm
+                )

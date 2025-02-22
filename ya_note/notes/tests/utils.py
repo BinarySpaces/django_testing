@@ -1,10 +1,9 @@
-from django.test import TestCase
-from django.test import Client
+from django.test import Client, TestCase
 from django.urls import reverse
 
 from notes.models import Note, User
 
-SLUG = 'podrobnosti'
+SLUG = 'details'
 NOTES_HOME_URL = reverse('notes:home')
 NOTES_LIST_URL = reverse('notes:list')
 NOTES_ADD_URL = reverse('notes:add')
@@ -16,6 +15,13 @@ REDIRECT_URL = f'{LOGIN_URL}?next='
 DETAIL_SLUG_URL = reverse('notes:detail', args=(SLUG,))
 EDIT_SLUG_URL = reverse('notes:edit', args=(SLUG,))
 DELETE_SLUG_URL = reverse('notes:delete', args=(SLUG,))
+
+REDIRECT_EDIT_SLUG_URL = f'{REDIRECT_URL}{EDIT_SLUG_URL}'
+REDIRECT_DELETE_SLUG_URL = f'{REDIRECT_URL}{DELETE_SLUG_URL}'
+REDIRECT_DETAIL_SLUG_URL = f'{REDIRECT_URL}{DETAIL_SLUG_URL}'
+REDIRECT_NOTES_LIST_URL = f'{REDIRECT_URL}{NOTES_LIST_URL}'
+REDIRECT_NOTES_ADD_URL = f'{REDIRECT_URL}{NOTES_ADD_URL}'
+REDIRECT_NOTES_SUCCESS_URL = f'{REDIRECT_URL}{NOTES_SUCCESS_URL}'
 
 
 class TestBaseClass(TestCase):
@@ -33,4 +39,9 @@ class TestBaseClass(TestCase):
             slug=SLUG,
             author=cls.author
         )
-        cls.note_previous_count = Note.objects.count()
+        cls.FORM_DATA = {
+            'title': 'title',
+            'text': 'notetext',
+            'slug': 'noteslug'
+        }
+        cls.form_data = cls.FORM_DATA.copy()
