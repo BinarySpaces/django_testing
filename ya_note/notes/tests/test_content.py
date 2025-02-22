@@ -13,14 +13,11 @@ class TestNotesList(TestBaseClass):
     def test_note_in_list(self):
         notes = self.auth_author.get(NOTES_LIST_URL).context['object_list']
         self.assertIn(self.note, notes)
-        note_in_list = next(
-            (note for note in notes if note.id == self.note.id), None
-        )
-        self.assertIsNotNone(note_in_list)
-        self.assertEqual(note_in_list.title, self.note.title)
-        self.assertEqual(note_in_list.text, self.note.text)
-        self.assertEqual(note_in_list.slug, self.note.slug)
-        self.assertEqual(note_in_list.author, self.note.author)
+        note = notes.get(id=self.note.id)
+        self.assertEqual(note.title, self.note.title)
+        self.assertEqual(note.text, self.note.text)
+        self.assertEqual(note.slug, self.note.slug)
+        self.assertEqual(note.author, self.note.author)
 
     def test_notes_do_not_mix_for_author(self):
         self.assertNotIn(
