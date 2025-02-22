@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from pytils.translit import slugify 
+from pytils.translit import slugify
 
 from notes.forms import WARNING
 from notes.models import Note
@@ -95,7 +95,10 @@ class TestNoteLogic(TestBaseClass):
         self.assertEqual(note.author, self.note.author)
 
     def test_other_user_cant_edit_note(self):
-        response = self.auth_other_user.post(EDIT_SLUG_URL, data=self.FORM_DATA)
+        response = self.auth_other_user.post(
+            EDIT_SLUG_URL,
+            data=self.FORM_DATA
+        )
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
         note_from_db = Note.objects.get(id=self.note.id)
         self.assertEqual(self.note.text, note_from_db.text)

@@ -3,6 +3,7 @@ from django.urls import reverse
 
 from notes.models import Note, User
 
+
 SLUG = 'details'
 NOTES_HOME_URL = reverse('notes:home')
 NOTES_LIST_URL = reverse('notes:list')
@@ -15,7 +16,6 @@ REDIRECT_URL = f'{LOGIN_URL}?next='
 DETAIL_SLUG_URL = reverse('notes:detail', args=(SLUG,))
 EDIT_SLUG_URL = reverse('notes:edit', args=(SLUG,))
 DELETE_SLUG_URL = reverse('notes:delete', args=(SLUG,))
-
 REDIRECT_EDIT_SLUG_URL = f'{REDIRECT_URL}{EDIT_SLUG_URL}'
 REDIRECT_DELETE_SLUG_URL = f'{REDIRECT_URL}{DELETE_SLUG_URL}'
 REDIRECT_DETAIL_SLUG_URL = f'{REDIRECT_URL}{DETAIL_SLUG_URL}'

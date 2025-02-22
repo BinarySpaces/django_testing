@@ -19,11 +19,7 @@
             <a class="nav-link" href="{% url 'notes:add' %}">Новая заметка</a>
           </li>
           <li class="nav-item">
-            <form method="post" action="{% url 'users:logout' %}">
-              {% csrf_token %}
-              <button type="submit" class="nav-link">Выйти</button>
-            </form>
-            {% comment %} <a class="nav-link" href="{% url 'users:logout' %}">Выйти</a> {% endcomment %}
+            <a class="nav-link" href="{% url 'users:logout' %}">Выйти</a>
           </li>
         {% else %}
           <li class="nav-item">

@@ -24,24 +24,99 @@ from .utils import (
 class TestRoutes(TestBaseClass):
 
     def test_availability_for_pages(self):
-        parametrized_options = (
-            (DETAIL_SLUG_URL, self.auth_author.get, HTTPStatus.OK, None),
-            (DETAIL_SLUG_URL, self.auth_other_user.get, HTTPStatus.NOT_FOUND, None),
-            (EDIT_SLUG_URL, self.auth_author.get, HTTPStatus.OK, None),
-            (EDIT_SLUG_URL, self.auth_other_user.get, HTTPStatus.NOT_FOUND, None),
-            (EDIT_SLUG_URL, self.client.get, HTTPStatus.FOUND, REDIRECT_EDIT_SLUG_URL),
-            (DELETE_SLUG_URL, self.auth_author.get, HTTPStatus.OK, None),
-            (DELETE_SLUG_URL, self.auth_other_user.get, HTTPStatus.NOT_FOUND, None),
-            (DELETE_SLUG_URL, self.client.get, HTTPStatus.FOUND, REDIRECT_DELETE_SLUG_URL),
-            (NOTES_LIST_URL, self.auth_author.get, HTTPStatus.OK, None),
-            (NOTES_ADD_URL, self.auth_author.get, HTTPStatus.OK, None),
-            (NOTES_SUCCESS_URL, self.auth_author.get, HTTPStatus.OK, None),
-            (NOTES_HOME_URL, self.client.get, HTTPStatus.OK, None),
-            (LOGIN_URL, self.client.get, HTTPStatus.OK, None),
-            (LOGOUT_URL, self.client.post, HTTPStatus.OK, None),
-            (SIGN_UP_URL, self.client.get, HTTPStatus.OK, None),
+        options = (
+            (
+                DETAIL_SLUG_URL,
+                self.auth_author.get,
+                HTTPStatus.OK,
+                None
+            ),
+            (
+                DETAIL_SLUG_URL,
+                self.auth_other_user.get,
+                HTTPStatus.NOT_FOUND,
+                None
+            ),
+            (
+                EDIT_SLUG_URL,
+                self.auth_author.get,
+                HTTPStatus.OK,
+                None
+            ),
+            (
+                EDIT_SLUG_URL,
+                self.auth_other_user.get,
+                HTTPStatus.NOT_FOUND,
+                None
+            ),
+            (
+                EDIT_SLUG_URL,
+                self.client.get,
+                HTTPStatus.FOUND,
+                REDIRECT_EDIT_SLUG_URL
+            ),
+            (
+                DELETE_SLUG_URL,
+                self.auth_author.get,
+                HTTPStatus.OK,
+                None
+            ),
+            (
+                DELETE_SLUG_URL,
+                self.auth_other_user.get,
+                HTTPStatus.NOT_FOUND,
+                None
+            ),
+            (
+                DELETE_SLUG_URL,
+                self.client.get,
+                HTTPStatus.FOUND,
+                REDIRECT_DELETE_SLUG_URL
+            ),
+            (
+                NOTES_LIST_URL,
+                self.auth_author.get,
+                HTTPStatus.OK,
+                None
+            ),
+            (
+                NOTES_ADD_URL,
+                self.auth_author.get,
+                HTTPStatus.OK,
+                None
+            ),
+            (
+                NOTES_SUCCESS_URL,
+                self.auth_author.get,
+                HTTPStatus.OK,
+                None
+            ),
+            (
+                NOTES_HOME_URL,
+                self.client.get,
+                HTTPStatus.OK,
+                None
+            ),
+            (
+                LOGIN_URL,
+                self.client.get,
+                HTTPStatus.OK,
+                None
+            ),
+            (
+                LOGOUT_URL,
+                self.client.post,
+                HTTPStatus.OK,
+                None
+            ),
+            (
+                SIGN_UP_URL,
+                self.client.get,
+                HTTPStatus.OK,
+                None
+            ),
         )
-        for url, client_method, expected_status, expected_redirect in parametrized_options:
+        for url, client_method, expected_status, expected_redirect in options:
             with self.subTest(
                 url=url,
                 client_method=client_method,
