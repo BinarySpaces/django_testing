@@ -3,9 +3,24 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.views import generic
+# from django.contrib.auth import logout
+# from django.shortcuts import render
+# from django.views import View
 
 from .forms import CommentForm
 from .models import Comment, News
+
+
+# class CustomLogoutView(View):
+#     template_name = 'registration/logout.html'  # Указываем шаблон
+
+#     def get(self, request, *args, **kwargs):
+#         logout(request)
+#         return render(request, self.template_name)
+
+#     def post(self, request, *args, **kwargs):
+#         logout(request)
+#         return render(request, self.template_name)
 
 
 class NewsList(generic.ListView):
