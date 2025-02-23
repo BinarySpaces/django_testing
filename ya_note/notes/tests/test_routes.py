@@ -28,8 +28,7 @@ class TestRoutes(TestBaseClass):
             (
                 DETAIL_SLUG_URL,
                 self.auth_author.get,
-                HTTPStatus.OK,
-                None
+                HTTPStatus.OK
             ),
             (
                 DETAIL_SLUG_URL,
