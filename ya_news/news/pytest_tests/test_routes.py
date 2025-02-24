@@ -2,81 +2,101 @@ from http import HTTPStatus
 
 import pytest
 from pytest_django.asserts import assertRedirects
-
-from .conftest import (
-    CLIENT,
-    NEWS_HOME_URL,
-    NEWS_DETAIL_URL,
-    NEWS_LOGIN_URL,
-    NEWS_LOGOUT_URL,
-    NEWS_SIGNUP_URL,
-    COMMENT_EDIT_URL,
-    COMMENT_DELETE_URL,
-    REDIRECT_URL_EDIT_COMMENT,
-    REDIRECT_URL_DELETE_COMMENT,
-)
+from django.test.client import Client
 
 
 pytestmark = pytest.mark.django_db
 
+CLIENT = Client()
+
+AUTHOR_ONLY_ROUTES = (
+    'comment_edit',
+    'comment_delete',
+)
+
 
 @pytest.mark.parametrize(
-    'url, client_or_method, expected_status, expected_redirect',
+    'url_fixture, client_method, expected_status',
     (
-        (NEWS_LOGIN_URL, CLIENT.get, HTTPStatus.OK, None),
-        (NEWS_LOGOUT_URL, CLIENT.post, HTTPStatus.OK, None),
-        (NEWS_SIGNUP_URL, CLIENT.get, HTTPStatus.OK, None),
-        (NEWS_HOME_URL, CLIENT.get, HTTPStatus.OK, None),
-        (NEWS_DETAIL_URL, CLIENT.get, HTTPStatus.OK, None),
-        (COMMENT_EDIT_URL, 'author_client', HTTPStatus.OK, None),
-        (COMMENT_EDIT_URL, 'not_author_client', HTTPStatus.NOT_FOUND, None),
-        (COMMENT_DELETE_URL, 'author_client', HTTPStatus.OK, None),
-        (COMMENT_DELETE_URL, 'not_author_client', HTTPStatus.NOT_FOUND, None),
-        (
-            COMMENT_EDIT_URL,
-            CLIENT.get,
-            HTTPStatus.FOUND,
-            REDIRECT_URL_EDIT_COMMENT
-        ),
-        (
-            COMMENT_DELETE_URL,
-            CLIENT.get,
-            HTTPStatus.FOUND,
-            REDIRECT_URL_DELETE_COMMENT
-        ),
-    ),
+        ('login', 'get', HTTPStatus.OK),
+        ('logout', 'post', HTTPStatus.OK),
+        ('signup', 'get', HTTPStatus.OK),
+        ('news_home', 'get', HTTPStatus.OK),
+        ('news_detail', 'get', HTTPStatus.OK),
+        ('comment_edit', 'get', HTTPStatus.OK),
+        ('comment_edit', 'get', HTTPStatus.NOT_FOUND),
+        ('comment_delete', 'get', HTTPStatus.OK),
+        ('comment_delete', 'get', HTTPStatus.NOT_FOUND),
+    )
 )
-def test_pages_availability_for_users(
+def test_pages_availability_for_users_without_redirect(
     request,
-    url,
-    client_or_method,
+    url_fixture,
+    client_method,
     expected_status,
-    expected_redirect,
+    author_client,
+    not_author_client,
     comment,
-    news
+    news,
 ):
     news = news
     comment = comment
 
-    if isinstance(client_or_method, str):
-        client = request.getfixturevalue(client_or_method)
-        method = client.get
-    else:
-        method = client_or_method
-    response = method(url)
-
+    client = (
+        author_client
+        if url_fixture in AUTHOR_ONLY_ROUTES
+        and expected_status == HTTPStatus.OK
+        else not_author_client
+    )
+    response = getattr(client, client_method)(
+        request.getfixturevalue(url_fixture)
+    )
     assert response.status_code == expected_status
-    if expected_redirect:
-        assert response.url == expected_redirect
 
 
 @pytest.mark.parametrize(
-    'url, user, expected_redirect',
     (
-        (COMMENT_EDIT_URL, CLIENT, REDIRECT_URL_EDIT_COMMENT),
-        (COMMENT_DELETE_URL, CLIENT, REDIRECT_URL_DELETE_COMMENT),
+        'url_fixture',
+        'client_method',
+        'expected_status',
+        'expected_redirect_fixture',
     ),
-
+    (
+        (
+            'comment_edit',
+            CLIENT.get,
+            HTTPStatus.FOUND,
+            'redirect_url_edit_comment'
+        ),
+        (
+            'comment_delete',
+            CLIENT.get,
+            HTTPStatus.FOUND,
+            'redirect_url_delete_comment'
+        ),
+    ),
 )
-def test_redirects(url, user, expected_redirect):
-    assertRedirects(user.get(url), expected_redirect)
+def test_pages_availability_for_users_with_redirect(
+    request,
+    url_fixture,
+    client_method,
+    expected_status,
+    expected_redirect_fixture,
+):
+    response = client_method(request.getfixturevalue(url_fixture))
+    assert response.status_code == expected_status
+    assert response.url == request.getfixturevalue(expected_redirect_fixture)
+
+
+@pytest.mark.parametrize(
+    'url_fixture, user, expected_redirect_fixture',
+    (
+        ('comment_edit', CLIENT, 'redirect_url_edit_comment'),
+        ('comment_delete', CLIENT, 'redirect_url_delete_comment'),
+    ),
+)
+def test_redirects(request, url_fixture, user, expected_redirect_fixture,):
+    assertRedirects(
+        user.get(request.getfixturevalue(url_fixture)),
+        request.getfixturevalue(expected_redirect_fixture)
+    )

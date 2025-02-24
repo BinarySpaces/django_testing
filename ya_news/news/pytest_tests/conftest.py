@@ -1,24 +1,12 @@
 from datetime import datetime, timedelta
 
-import pytest
-from django.test.client import Client
 from django.conf import settings
-from django.utils import timezone
+from django.test.client import Client
 from django.urls import reverse
+from django.utils import timezone
+import pytest
 
 from news.models import News, Comment
-
-
-CLIENT = Client()
-NEWS_HOME_URL = ''
-NEWS_DETAIL_URL = '/news/1/'
-NEWS_LOGIN_URL = '/auth/login/'
-NEWS_LOGOUT_URL = '/auth/logout/'
-NEWS_SIGNUP_URL = '/auth/signup/'
-COMMENT_EDIT_URL = '/edit_comment/1/'
-COMMENT_DELETE_URL = '/delete_comment/1/'
-REDIRECT_URL_EDIT_COMMENT = '/auth/login/?next=/edit_comment/1/'
-REDIRECT_URL_DELETE_COMMENT = '/auth/login/?next=/delete_comment/1/'
 
 
 @pytest.fixture
@@ -69,7 +57,7 @@ def redirect_url_anonymous_user_comments(login, news_detail):
 
 @pytest.fixture
 def redirect_url_auth_user_comments(news_detail):
-    return news_detail + '#comments'
+    return f'{news_detail}#comments'
 
 
 @pytest.fixture

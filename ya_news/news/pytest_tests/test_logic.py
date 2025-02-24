@@ -1,17 +1,17 @@
 from http import HTTPStatus
-import uuid
 
 import pytest
 from pytest_django.asserts import assertFormError, assertRedirects
 
+from news.forms import BAD_WORDS, WARNING
 from news.models import Comment
 
 
 pytestmark = pytest.mark.django_db
 
+BAD_WORDS_DATA = {'text': None}
 FORM_DATA = {'text': 'Comment text'}
-BAD_WORDS = ('редиска', 'негодяй')
-WARNING = 'Не ругайтесь!'
+
 
 
 def test_anonymous_user_cant_create_comment(
@@ -28,14 +28,19 @@ def test_anonymous_user_cant_create_comment(
     ))
     response = client.post(news_detail, data=FORM_DATA)
     assertRedirects(response, redirect_url_anonymous_user_comments)
-    assert before_response_comments == list(Comment.objects.values(
-        'id',
-        'text',
-        'news',
-        'author',
-        'created'
-    ))
-
+    assert (
+        sorted(before_response_comments, key=lambda x: x['id'])
+        == sorted(
+            list(Comment.objects.values(
+                'id',
+                'text',
+                'news',
+                'author',
+                'created'
+            )),
+            key=lambda x: x['id']
+        )
+    )
 
 def test_auth_user_can_create_comment(
         author_client,
@@ -44,18 +49,19 @@ def test_auth_user_can_create_comment(
         news,
         redirect_url_auth_user_comments,
 ):
-    unique_text = f"{FORM_DATA['text']} {uuid.uuid4()}"
-    form_data = {**FORM_DATA, 'text': unique_text}
-
     before_response_comment_count = Comment.objects.count()
-    response = author_client.post(news_detail, data=form_data)
-    after_response_comment_count = Comment.objects.count()
+    response = author_client.post(news_detail, data=FORM_DATA)
 
     assertRedirects(response, redirect_url_auth_user_comments)
-    assert after_response_comment_count == before_response_comment_count + 1
+    assert Comment.objects.count() == before_response_comment_count + 1
+    assert Comment.objects.count() == 1
 
-    new_comment = Comment.objects.get(text=unique_text)
-    assert new_comment.text == form_data['text']
+    new_comment = Comment.objects.get(
+        text=FORM_DATA['text'],
+        news=news,
+        author=author
+    )
+    assert new_comment.text == FORM_DATA['text']
     assert new_comment.news == news
     assert new_comment.author == author
 
@@ -65,6 +71,8 @@ def test_auth_user_can_create_comment(
     BAD_WORDS,
 )
 def test_user_cant_use_bad_words(author_client, news_detail, bad_word):
+    post_data = BAD_WORDS_DATA.copy()
+    post_data['text'] = bad_word
     original_comments = list(Comment.objects.values(
         'id',
         'text',
@@ -72,15 +80,21 @@ def test_user_cant_use_bad_words(author_client, news_detail, bad_word):
         'author',
         'created'
     ))
-    response = author_client.post(news_detail, data={'text': bad_word})
+    response = author_client.post(news_detail, data=post_data)
     assertFormError(response, form='form', field='text', errors=WARNING)
-    assert original_comments == list(Comment.objects.values(
-        'id',
-        'text',
-        'news',
-        'author',
-        'created'
-    ))
+    assert (
+        sorted(original_comments, key=lambda x: x['id'])
+        == sorted(
+            list(Comment.objects.values(
+                'id',
+                'text',
+                'news',
+                'author',
+                'created'
+            )),
+            key=lambda x: x['id']
+        )
+    )
 
 
 def test_author_can_edit_comment(
@@ -89,14 +103,12 @@ def test_author_can_edit_comment(
         comment_edit,
         redirect_url_auth_user_comments,
 ):
-    original_author = comment.author
-    original_news = comment.news
     response = author_client.post(comment_edit, data=FORM_DATA)
     assertRedirects(response, redirect_url_auth_user_comments)
     updated_comment = Comment.objects.get(id=comment.id)
     assert updated_comment.text == FORM_DATA['text']
-    assert updated_comment.author == original_author
-    assert updated_comment.news == original_news
+    assert updated_comment.author == comment.author
+    assert updated_comment.news == comment.news
 
 
 def test_author_can_delete_comment(
@@ -134,8 +146,8 @@ def test_other_cant_delete_comment(
     response = not_author_client.post(comment_delete)
     updated_comment = Comment.objects.get(pk=comment.id)
 
-    assert response.status_code == HTTPStatus.NOT_FOUND
     assert Comment.objects.filter(pk=comment.id).exists()
+    assert response.status_code == HTTPStatus.NOT_FOUND
     assert comment.text == updated_comment.text
     assert comment.news == updated_comment.news
     assert comment.author == updated_comment.author

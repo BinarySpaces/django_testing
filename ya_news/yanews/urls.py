@@ -4,8 +4,6 @@ from django.contrib.auth.forms import UserCreationForm
 from django.urls import include, path
 from django.views.generic import CreateView
 
-# from news.views import CustomLogoutView
-
 
 urlpatterns = [
     path('', include('news.urls')),
