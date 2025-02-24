@@ -23,10 +23,6 @@ class TestNoteLogic(TestBaseClass):
         )
         self.form_data['slug'] = self.note.slug
         response = self.auth_author.post(NOTES_ADD_URL, data=self.form_data)
-        after_response_notes = sorted(
-            list(Note.objects.values()),
-            key=lambda x: x['id']
-        )
         self.assertFormError(
             response,
             form='form',
@@ -35,7 +31,7 @@ class TestNoteLogic(TestBaseClass):
         )
         self.assertEqual(
             before_response_notes,
-            after_response_notes
+            sorted(list(Note.objects.values()), key=lambda x: x['id'])
         )
 
     def test_empty_slug(self):
@@ -69,14 +65,10 @@ class TestNoteLogic(TestBaseClass):
             key=lambda x: x['id']
         )
         response = self.client.post(NOTES_ADD_URL, data=self.form_data)
-        after_response_notes = sorted(
-            list(Note.objects.values()),
-            key=lambda x: x['id']
-        )
         self.assertRedirects(response, REDIRECT_NOTES_ADD_URL)
         self.assertEqual(
             before_response_notes,
-            after_response_notes
+            sorted(list(Note.objects.values()), key=lambda x: x['id'])
         )
 
     def test_author_can_delete_note(self):
