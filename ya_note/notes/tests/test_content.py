@@ -10,7 +10,7 @@ from .utils import (
 
 class TestNotesList(TestBaseClass):
 
-    def test_note_in_list(self):
+    def test_author_can_see_their_note_in_list(self):
         notes = self.auth_author.get(NOTES_LIST_URL).context['object_list']
         self.assertIn(self.note, notes)
         note = notes.get(id=self.note.id)
@@ -19,13 +19,13 @@ class TestNotesList(TestBaseClass):
         self.assertEqual(note.slug, self.note.slug)
         self.assertEqual(note.author, self.note.author)
 
-    def test_notes_do_not_mix_for_author(self):
+    def test_other_users_cannot_see_author_notes(self):
         self.assertNotIn(
             self.note,
             self.auth_other_user.get(NOTES_LIST_URL).context['object_list']
         )
 
-    def test_existing_form(self):
+    def test_forms_are_available_for_author(self):
         urls = (
             NOTES_ADD_URL,
             EDIT_SLUG_URL

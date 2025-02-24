@@ -16,21 +16,26 @@ from .utils import (
 
 class TestNoteLogic(TestBaseClass):
 
-    def test_slug_unique(self):
-        before_response_notes = list(Note.objects.values(
-            'id', 'title', 'text', 'slug', 'author',
-        ))
+    def test_author_cannot_create_note_with_duplicate_slug(self):
+        before_response_notes = sorted(
+            list(Note.objects.values()),
+            key=lambda x: x['id']
+        )
         self.form_data['slug'] = self.note.slug
         response = self.auth_author.post(NOTES_ADD_URL, data=self.form_data)
+        after_response_notes = sorted(
+            list(Note.objects.values()),
+            key=lambda x: x['id']
+        )
         self.assertFormError(
             response,
             form='form',
             field='slug',
             errors=self.note.slug + WARNING
         )
-        self.assertCountEqual(
+        self.assertEqual(
             before_response_notes,
-            list(Note.objects.values('id', 'title', 'text', 'slug', 'author',))
+            after_response_notes
         )
 
     def test_empty_slug(self):
@@ -48,25 +53,30 @@ class TestNoteLogic(TestBaseClass):
 
     def test_auth_user_can_create_note(self):
         Note.objects.all().delete()
-        response = self.auth_author.post(NOTES_ADD_URL, data=self.FORM_DATA)
+        response = self.auth_author.post(NOTES_ADD_URL, data=self.form_data)
         self.assertRedirects(response, NOTES_SUCCESS_URL)
         self.assertEqual(Note.objects.count(), 1)
 
         note = Note.objects.get()
-        self.assertEqual(note.title, self.FORM_DATA['title'])
-        self.assertEqual(note.text, self.FORM_DATA['text'])
-        self.assertEqual(note.slug, self.FORM_DATA['slug'])
+        self.assertEqual(note.title, self.form_data['title'])
+        self.assertEqual(note.text, self.form_data['text'])
+        self.assertEqual(note.slug, self.form_data['slug'])
         self.assertEqual(note.author, self.author)
 
     def test_anonymous_user_cant_create_note(self):
-        before_response_notes = list(Note.objects.values(
-            'id', 'title', 'text', 'slug', 'author',
-        ))
-        response = self.client.post(NOTES_ADD_URL, data=self.FORM_DATA)
+        before_response_notes = sorted(
+            list(Note.objects.values()),
+            key=lambda x: x['id']
+        )
+        response = self.client.post(NOTES_ADD_URL, data=self.form_data)
+        after_response_notes = sorted(
+            list(Note.objects.values()),
+            key=lambda x: x['id']
+        )
         self.assertRedirects(response, REDIRECT_NOTES_ADD_URL)
-        self.assertCountEqual(
+        self.assertEqual(
             before_response_notes,
-            list(Note.objects.values('id', 'title', 'text', 'slug', 'author',))
+            after_response_notes
         )
 
     def test_author_can_delete_note(self):
@@ -88,19 +98,19 @@ class TestNoteLogic(TestBaseClass):
         self.assertEqual(note.author, self.note.author)
 
     def test_author_can_edit_note(self):
-        response = self.auth_author.post(EDIT_SLUG_URL, data=self.FORM_DATA)
+        response = self.auth_author.post(EDIT_SLUG_URL, data=self.form_data)
         self.assertRedirects(response, NOTES_SUCCESS_URL)
 
         note = Note.objects.get(pk=self.note.pk)
-        self.assertEqual(note.text, self.FORM_DATA['text'])
-        self.assertEqual(note.slug, self.FORM_DATA['slug'])
-        self.assertEqual(note.title, self.FORM_DATA['title'])
+        self.assertEqual(note.text, self.form_data['text'])
+        self.assertEqual(note.slug, self.form_data['slug'])
+        self.assertEqual(note.title, self.form_data['title'])
         self.assertEqual(note.author, self.note.author)
 
     def test_other_user_cant_edit_note(self):
         response = self.auth_other_user.post(
             EDIT_SLUG_URL,
-            data=self.FORM_DATA
+            data=self.form_data
         )
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
