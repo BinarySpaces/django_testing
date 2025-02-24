@@ -13,7 +13,6 @@ BAD_WORDS_DATA = {'text': None}
 FORM_DATA = {'text': 'Comment text'}
 
 
-
 def test_anonymous_user_cant_create_comment(
         client,
         news_detail,
@@ -42,6 +41,7 @@ def test_anonymous_user_cant_create_comment(
         )
     )
 
+
 def test_auth_user_can_create_comment(
         author_client,
         author,
@@ -55,15 +55,11 @@ def test_auth_user_can_create_comment(
     assertRedirects(response, redirect_url_auth_user_comments)
     assert Comment.objects.count() == before_response_comment_count + 1
     assert Comment.objects.count() == 1
-
-    new_comment = Comment.objects.get(
+    assert Comment.objects.filter(
         text=FORM_DATA['text'],
         news=news,
         author=author
-    )
-    assert new_comment.text == FORM_DATA['text']
-    assert new_comment.news == news
-    assert new_comment.author == author
+    ).exists()
 
 
 @pytest.mark.parametrize(
