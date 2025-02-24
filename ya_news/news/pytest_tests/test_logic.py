@@ -18,27 +18,15 @@ def test_anonymous_user_cant_create_comment(
         news_detail,
         redirect_url_anonymous_user_comments,
 ):
-    before_response_comments = list(Comment.objects.values(
-        'id',
-        'text',
-        'news',
-        'author',
-        'created'
-    ))
+    before_response_comments = sorted(
+        list(Comment.objects.values()),
+        key=lambda x: x['id']
+    )
     response = client.post(news_detail, data=FORM_DATA)
     assertRedirects(response, redirect_url_anonymous_user_comments)
     assert (
-        sorted(before_response_comments, key=lambda x: x['id'])
-        == sorted(
-            list(Comment.objects.values(
-                'id',
-                'text',
-                'news',
-                'author',
-                'created'
-            )),
-            key=lambda x: x['id']
-        )
+        before_response_comments
+        == sorted(list(Comment.objects.values()), key=lambda x: x['id'])
     )
 
 
@@ -49,11 +37,9 @@ def test_auth_user_can_create_comment(
         news,
         redirect_url_auth_user_comments,
 ):
-    before_response_comment_count = Comment.objects.count()
     response = author_client.post(news_detail, data=FORM_DATA)
 
     assertRedirects(response, redirect_url_auth_user_comments)
-    assert Comment.objects.count() == before_response_comment_count + 1
     assert Comment.objects.count() == 1
     assert Comment.objects.filter(
         text=FORM_DATA['text'],
@@ -69,27 +55,15 @@ def test_auth_user_can_create_comment(
 def test_user_cant_use_bad_words(author_client, news_detail, bad_word):
     post_data = BAD_WORDS_DATA.copy()
     post_data['text'] = bad_word
-    original_comments = list(Comment.objects.values(
-        'id',
-        'text',
-        'news',
-        'author',
-        'created'
-    ))
+    original_comments = sorted(
+        list(Comment.objects.values()),
+        key=lambda x: x['id']
+    )
     response = author_client.post(news_detail, data=post_data)
     assertFormError(response, form='form', field='text', errors=WARNING)
     assert (
-        sorted(original_comments, key=lambda x: x['id'])
-        == sorted(
-            list(Comment.objects.values(
-                'id',
-                'text',
-                'news',
-                'author',
-                'created'
-            )),
-            key=lambda x: x['id']
-        )
+        original_comments
+        == sorted(list(Comment.objects.values()), key=lambda x: x['id'])
     )
 
 
@@ -128,6 +102,7 @@ def test_other_cant_edit_comment(
 ):
     response = not_author_client.post(comment_edit, data=FORM_DATA)
     updated_comment = Comment.objects.get(id=comment.id)
+
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert comment.text == updated_comment.text
     assert comment.news == updated_comment.news
@@ -140,9 +115,9 @@ def test_other_cant_delete_comment(
         comment_delete,
 ):
     response = not_author_client.post(comment_delete)
+    assert Comment.objects.filter(pk=comment.id).exists()
     updated_comment = Comment.objects.get(pk=comment.id)
 
-    assert Comment.objects.filter(pk=comment.id).exists()
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert comment.text == updated_comment.text
     assert comment.news == updated_comment.news

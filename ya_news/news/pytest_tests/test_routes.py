@@ -2,101 +2,76 @@ from http import HTTPStatus
 
 import pytest
 from pytest_django.asserts import assertRedirects
-from django.test.client import Client
 
 
 pytestmark = pytest.mark.django_db
 
-CLIENT = Client()
-
-AUTHOR_ONLY_ROUTES = (
-    'comment_edit',
-    'comment_delete',
-)
-
 
 @pytest.mark.parametrize(
-    'url_fixture, client_method, expected_status',
+    'url_key, client_method, expected_status, expected_redirect_fixture',
     (
-        ('login', 'get', HTTPStatus.OK),
-        ('logout', 'post', HTTPStatus.OK),
-        ('signup', 'get', HTTPStatus.OK),
-        ('news_home', 'get', HTTPStatus.OK),
-        ('news_detail', 'get', HTTPStatus.OK),
-        ('comment_edit', 'get', HTTPStatus.OK),
-        ('comment_edit', 'get', HTTPStatus.NOT_FOUND),
-        ('comment_delete', 'get', HTTPStatus.OK),
-        ('comment_delete', 'get', HTTPStatus.NOT_FOUND),
-    )
-)
-def test_pages_availability_for_users_without_redirect(
-    request,
-    url_fixture,
-    client_method,
-    expected_status,
-    author_client,
-    not_author_client,
-    comment,
-    news,
-):
-    news = news
-    comment = comment
-
-    client = (
-        author_client
-        if url_fixture in AUTHOR_ONLY_ROUTES
-        and expected_status == HTTPStatus.OK
-        else not_author_client
-    )
-    response = getattr(client, client_method)(
-        request.getfixturevalue(url_fixture)
-    )
-    assert response.status_code == expected_status
-
-
-@pytest.mark.parametrize(
-    (
-        'url_fixture',
-        'client_method',
-        'expected_status',
-        'expected_redirect_fixture',
-    ),
-    (
+        ('login', 'author.get', HTTPStatus.OK, None),
+        ('logout', 'author.post', HTTPStatus.OK, None),
+        ('signup', 'author.get', HTTPStatus.OK, None),
+        ('news_home', 'author.get', HTTPStatus.OK, None),
+        ('news_detail', 'author.get', HTTPStatus.OK, None),
+        ('comment_edit', 'author.get', HTTPStatus.OK, None),
+        ('comment_delete', 'author.get', HTTPStatus.OK, None),
+        ('comment_edit', 'not_author.get', HTTPStatus.NOT_FOUND, None),
+        ('comment_delete', 'not_author.get', HTTPStatus.NOT_FOUND, None),
         (
             'comment_edit',
-            CLIENT.get,
+            'client.get',
             HTTPStatus.FOUND,
             'redirect_url_edit_comment'
         ),
         (
             'comment_delete',
-            CLIENT.get,
+            'client.get',
             HTTPStatus.FOUND,
             'redirect_url_delete_comment'
         ),
-    ),
+    )
 )
-def test_pages_availability_for_users_with_redirect(
-    request,
-    url_fixture,
+def test_pages_availability_for_users(
+    all_urls,
+    all_clients,
+    redirect_urls,
+    url_key,
     client_method,
     expected_status,
     expected_redirect_fixture,
 ):
-    response = client_method(request.getfixturevalue(url_fixture))
+    client, method = client_method.split('.')
+    response = getattr(
+        all_clients[client],
+        method
+    )(all_urls[url_key])
+
     assert response.status_code == expected_status
-    assert response.url == request.getfixturevalue(expected_redirect_fixture)
+    if expected_redirect_fixture is not None:
+        redirect_url = redirect_urls[expected_redirect_fixture]
+        assert response.url == redirect_url
 
 
 @pytest.mark.parametrize(
-    'url_fixture, user, expected_redirect_fixture',
+    'url_key, client, expected_redirect_fixture',
     (
-        ('comment_edit', CLIENT, 'redirect_url_edit_comment'),
-        ('comment_delete', CLIENT, 'redirect_url_delete_comment'),
+        ('comment_edit', 'client', 'redirect_url_edit_comment'),
+        ('comment_delete', 'client', 'redirect_url_delete_comment'),
     ),
 )
-def test_redirects(request, url_fixture, user, expected_redirect_fixture,):
+def test_redirects(
+    all_urls,
+    all_clients,
+    redirect_urls,
+    url_key,
+    client,
+    expected_redirect_fixture,
+):
     assertRedirects(
-        user.get(request.getfixturevalue(url_fixture)),
-        request.getfixturevalue(expected_redirect_fixture)
+        all_clients[client].get(all_urls[url_key]),
+        redirect_urls[expected_redirect_fixture],
+        status_code=HTTPStatus.FOUND,
+        target_status_code=HTTPStatus.OK,
     )

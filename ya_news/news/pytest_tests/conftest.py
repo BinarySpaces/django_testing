@@ -10,6 +10,41 @@ from news.models import News, Comment
 
 
 @pytest.fixture
+def all_urls(
+    login,
+    logout,
+    signup,
+    news_home,
+    news_detail,
+    comment_edit,
+    comment_delete
+):
+    return {
+        'login': login,
+        'logout': logout,
+        'signup': signup,
+        'news_home': news_home,
+        'news_detail': news_detail,
+        'comment_edit': comment_edit,
+        'comment_delete': comment_delete,
+    }
+
+@pytest.fixture
+def all_clients(author_client, not_author_client):
+    return {
+        'author': author_client,
+        'not_author': not_author_client,
+        'client': Client(),
+    }
+
+@pytest.fixture
+def redirect_urls(redirect_url_edit_comment, redirect_url_delete_comment):
+    return {
+        'redirect_url_edit_comment': redirect_url_edit_comment,
+        'redirect_url_delete_comment': redirect_url_delete_comment,
+    }
+
+@pytest.fixture
 def author(django_user_model):
     return django_user_model.objects.create(username='Autor')
 
