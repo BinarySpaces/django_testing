@@ -114,8 +114,7 @@ class TestRoutes(TestBaseClass):
                     client_method(url).status_code == expected_status
                     and (not expected_status == HTTPStatus.FOUND
                          or client_method(url).headers['Location'] == redirect)
-)
-
+                )
     def test_redirect_for_anonymous_client(self):
         parametrized_options = (
             (EDIT_SLUG_URL, self.client, REDIRECT_EDIT_SLUG_URL),
