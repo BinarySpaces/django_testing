@@ -29,6 +29,7 @@ def all_urls(
         'comment_delete': comment_delete,
     }
 
+
 @pytest.fixture
 def all_clients(author_client, not_author_client):
     return {
@@ -37,12 +38,14 @@ def all_clients(author_client, not_author_client):
         'client': Client(),
     }
 
+
 @pytest.fixture
 def redirect_urls(redirect_url_edit_comment, redirect_url_delete_comment):
     return {
         'redirect_url_edit_comment': redirect_url_edit_comment,
         'redirect_url_delete_comment': redirect_url_delete_comment,
     }
+
 
 @pytest.fixture
 def author(django_user_model):
