@@ -9,7 +9,7 @@ from news.models import Comment
 
 pytestmark = pytest.mark.django_db
 
-BAD_WORDS_DATA = {'text': None}
+BAD_WORDS_FORM_DATA = [{'text': word} for word in BAD_WORDS]
 FORM_DATA = {'text': 'Comment text'}
 
 
@@ -18,15 +18,14 @@ def test_anonymous_user_cant_create_comment(
         news_detail,
         redirect_url_anonymous_user_comments,
 ):
-    before_response_comments = sorted(
-        list(Comment.objects.values()),
-        key=lambda x: x['id']
+    before_response_comments = set(  # Отличное решение!
+        Comment.objects.values_list('id', flat=True)
     )
     response = client.post(news_detail, data=FORM_DATA)
     assertRedirects(response, redirect_url_anonymous_user_comments)
     assert (
         before_response_comments
-        == sorted(list(Comment.objects.values()), key=lambda x: x['id'])
+        == set(Comment.objects.values_list('id', flat=True))
     )
 
 
@@ -50,20 +49,18 @@ def test_auth_user_can_create_comment(
 
 @pytest.mark.parametrize(
     'bad_word',
-    BAD_WORDS,
+    BAD_WORDS_FORM_DATA,
 )
 def test_user_cant_use_bad_words(author_client, news_detail, bad_word):
-    post_data = BAD_WORDS_DATA.copy()
-    post_data['text'] = bad_word
-    original_comments = sorted(
-        list(Comment.objects.values()),
-        key=lambda x: x['id']
+    post_data = {'text': bad_word['text']}
+    original_comments = set(
+        Comment.objects.values_list('id', flat=True)
     )
     response = author_client.post(news_detail, data=post_data)
     assertFormError(response, form='form', field='text', errors=WARNING)
     assert (
         original_comments
-        == sorted(list(Comment.objects.values()), key=lambda x: x['id'])
+        == set(Comment.objects.values_list('id', flat=True))
     )
 
 

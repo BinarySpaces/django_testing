@@ -2,76 +2,55 @@ from http import HTTPStatus
 
 import pytest
 from pytest_django.asserts import assertRedirects
+from django.test.client import Client
 
 
 pytestmark = pytest.mark.django_db
 
 
+CLIENT = Client()
+NEWS_DETAIL_URL = pytest.lazy_fixture('news_detail')
+NEWS_HOME_URL = pytest.lazy_fixture('news_home')
+NEWS_LOGIN_URL = pytest.lazy_fixture('login')
+NEWS_LOGOUT_URL = pytest.lazy_fixture('logout')
+NEWS_SIGNUP_URL = pytest.lazy_fixture('signup')
+NOT_AUTHOR_CLIENT = pytest.lazy_fixture('not_author_client')
+AUTHOR_CLIENT = pytest.lazy_fixture('author_client')
+COMMENT_EDIT_URL = pytest.lazy_fixture('comment_edit')
+COMMENT_DELETE_URL = pytest.lazy_fixture('comment_delete')
+REDIRECT_URL_EDIT_COMMENT = pytest.lazy_fixture('redirect_url_edit_comment')
+REDIRECT_URL_DELETE_COMMENT = (
+    pytest.lazy_fixture('redirect_url_delete_comment')
+)
+
+
 @pytest.mark.parametrize(
-    'url_key, client_method, expected_status, expected_redirect_fixture',
+    'url, user, expected_status',
     (
-        ('login', 'author.get', HTTPStatus.OK, None),
-        ('logout', 'author.post', HTTPStatus.OK, None),
-        ('signup', 'author.get', HTTPStatus.OK, None),
-        ('news_home', 'author.get', HTTPStatus.OK, None),
-        ('news_detail', 'author.get', HTTPStatus.OK, None),
-        ('comment_edit', 'author.get', HTTPStatus.OK, None),
-        ('comment_delete', 'author.get', HTTPStatus.OK, None),
-        ('comment_edit', 'not_author.get', HTTPStatus.NOT_FOUND, None),
-        ('comment_delete', 'not_author.get', HTTPStatus.NOT_FOUND, None),
-        (
-            'comment_edit',
-            'client.get',
-            HTTPStatus.FOUND,
-            'redirect_url_edit_comment'
-        ),
-        (
-            'comment_delete',
-            'client.get',
-            HTTPStatus.FOUND,
-            'redirect_url_delete_comment'
-        ),
+
+        (NEWS_LOGIN_URL, CLIENT, HTTPStatus.OK),
+        (NEWS_LOGOUT_URL, CLIENT, HTTPStatus.OK),
+        (NEWS_SIGNUP_URL, CLIENT, HTTPStatus.OK),
+        (NEWS_DETAIL_URL, CLIENT, HTTPStatus.OK),
+        (NEWS_HOME_URL, CLIENT, HTTPStatus.OK),
+        (COMMENT_EDIT_URL, CLIENT, HTTPStatus.FOUND),
+        (COMMENT_DELETE_URL, CLIENT, HTTPStatus.FOUND),
+        (COMMENT_EDIT_URL, AUTHOR_CLIENT, HTTPStatus.OK),
+        (COMMENT_EDIT_URL, NOT_AUTHOR_CLIENT, HTTPStatus.NOT_FOUND),
+        (COMMENT_DELETE_URL, AUTHOR_CLIENT, HTTPStatus.OK),
+        (COMMENT_DELETE_URL, NOT_AUTHOR_CLIENT, HTTPStatus.NOT_FOUND),
     )
 )
-def test_pages_availability_for_users(
-    all_urls,
-    all_clients,
-    redirect_urls,
-    url_key,
-    client_method,
-    expected_status,
-    expected_redirect_fixture,
-):
-    client, method = client_method.split('.')
-    response = getattr(
-        all_clients[client],
-        method
-    )(all_urls[url_key])
-
-    assert response.status_code == expected_status
-    if expected_redirect_fixture is not None:
-        redirect_url = redirect_urls[expected_redirect_fixture]
-        assert response.url == redirect_url
+def test_pages_availability_for_users(url, user, expected_status):
+    assert user.get(url).status_code == expected_status
 
 
 @pytest.mark.parametrize(
-    'url_key, client, expected_redirect_fixture',
+    'url, user, expected_redirect_fixture',
     (
-        ('comment_edit', 'client', 'redirect_url_edit_comment'),
-        ('comment_delete', 'client', 'redirect_url_delete_comment'),
+        (COMMENT_EDIT_URL, CLIENT, REDIRECT_URL_EDIT_COMMENT),
+        (COMMENT_DELETE_URL, CLIENT, REDIRECT_URL_DELETE_COMMENT),
     ),
 )
-def test_redirects(
-    all_urls,
-    all_clients,
-    redirect_urls,
-    url_key,
-    client,
-    expected_redirect_fixture,
-):
-    assertRedirects(
-        all_clients[client].get(all_urls[url_key]),
-        redirect_urls[expected_redirect_fixture],
-        status_code=HTTPStatus.FOUND,
-        target_status_code=HTTPStatus.OK,
-    )
+def test_redirects(url, user, expected_redirect_fixture):
+    assertRedirects(user.get(url), expected_redirect_fixture)
