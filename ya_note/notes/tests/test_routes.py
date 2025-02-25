@@ -29,20 +29,10 @@ class TestRoutes(TestBaseClass):
             (DETAIL_SLUG_URL, self.auth_other_user.get, HTTPStatus.NOT_FOUND),
             (EDIT_SLUG_URL, self.auth_author.get, HTTPStatus.OK),
             (EDIT_SLUG_URL, self.auth_other_user.get, HTTPStatus.NOT_FOUND),
-            (
-                EDIT_SLUG_URL,
-                self.client.get,
-                HTTPStatus.FOUND,
-                REDIRECT_EDIT_SLUG_URL
-            ),
+            (EDIT_SLUG_URL, self.client.get, HTTPStatus.FOUND,),
             (DELETE_SLUG_URL, self.auth_author.get, HTTPStatus.OK),
             (DELETE_SLUG_URL, self.auth_other_user.get, HTTPStatus.NOT_FOUND),
-            (
-                DELETE_SLUG_URL,
-                self.client.get,
-                HTTPStatus.FOUND,
-                REDIRECT_DELETE_SLUG_URL
-            ),
+            (DELETE_SLUG_URL, self.client.get, HTTPStatus.FOUND),
             (NOTES_LIST_URL, self.auth_author.get, HTTPStatus.OK),
             (NOTES_ADD_URL, self.auth_author.get, HTTPStatus.OK),
             (NOTES_SUCCESS_URL, self.auth_author.get, HTTPStatus.OK),
@@ -51,17 +41,13 @@ class TestRoutes(TestBaseClass):
             (LOGOUT_URL, self.client.post, HTTPStatus.OK),
             (SIGN_UP_URL, self.client.get, HTTPStatus.OK),
         )
-        for url, client_method, expected_status, *expected_redirect in cases:
-            redirect = expected_redirect[0] if expected_redirect else None
+        for url, client_method, expected_status in cases:
             with self.subTest(
                 url=url,
                 client_method=client_method,
                 expected_status=expected_status,
             ):
-                response = client_method(url)
-                assert response.status_code == expected_status
-                if expected_status == HTTPStatus.FOUND:
-                    assert response.headers['Location'] == redirect
+                assert client_method(url).status_code == expected_status
 
     def test_redirect_for_anonymous_client(self):
         parametrized_options = (
