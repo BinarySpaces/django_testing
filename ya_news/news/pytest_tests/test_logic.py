@@ -41,11 +41,11 @@ def test_auth_user_can_create_comment(
 
     assertRedirects(response, redirect_url_auth_user_comments)
     assert Comment.objects.count() == 1
-    assert Comment.objects.filter(
-        text=FORM_DATA['text'],
-        news=news,
-        author=author
-    ).exists()
+
+    comment = Comment.objects.get()
+    assert comment.text == FORM_DATA['text']
+    assert comment.news == news
+    assert comment.author == author
 
 
 @pytest.mark.parametrize(
