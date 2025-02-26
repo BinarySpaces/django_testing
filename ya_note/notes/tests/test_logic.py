@@ -31,7 +31,7 @@ class TestNoteLogic(TestBaseClass):
             set(Note.objects.values_list('id', flat=True))
         )
 
-    def create_note_and_assert(self, expect_slug_generation=True):
+    def create_note_and_assert(self, expect_slug_generation):
         Note.objects.all().delete()
         response = self.auth_author.post(NOTES_ADD_URL, data=self.form_data)
         self.assertRedirects(response, NOTES_SUCCESS_URL)
@@ -40,18 +40,15 @@ class TestNoteLogic(TestBaseClass):
         self.assertEqual(note.title, self.form_data['title'])
         self.assertEqual(note.text, self.form_data['text'])
         self.assertEqual(note.author, self.note.author)
-        if expect_slug_generation:
-            self.assertEqual(note.slug, slugify(self.form_data['title']))
-        else:
-            self.assertEqual(note.slug, slugify(self.form_data['slug']))
+        self.assertEqual(note.slug, slugify(expect_slug_generation))
         return note
 
     def test_slug_auto_generation_if_not_provided(self):
         self.form_data.pop('slug')
-        self.create_note_and_assert()
+        self.create_note_and_assert(self.form_data['title'])
 
     def test_auth_user_can_create_note(self):
-        self.create_note_and_assert(expect_slug_generation=False)
+        self.create_note_and_assert(self.form_data['slug'])
 
     def test_anonymous_user_cant_create_note(self):
         before_response_notes = set(Note.objects.values_list('id', flat=True))
