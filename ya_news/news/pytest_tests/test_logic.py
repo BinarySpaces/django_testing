@@ -48,15 +48,14 @@ def test_auth_user_can_create_comment(
 
 
 @pytest.mark.parametrize(
-    'bad_word',
+    'form_data',
     BAD_WORDS_FORM_DATA,
 )
-def test_user_cant_use_bad_words(author_client, news_detail, bad_word):
-    post_data = {'text': bad_word['text']}
+def test_user_cant_use_bad_words(author_client, news_detail, form_data):
     original_comments = set(
         Comment.objects.values_list('id', flat=True)
     )
-    response = author_client.post(news_detail, data=post_data)
+    response = author_client.post(news_detail, data=form_data)
     assertFormError(response, form='form', field='text', errors=WARNING)
     assert (
         original_comments

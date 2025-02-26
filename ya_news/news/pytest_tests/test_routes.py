@@ -2,13 +2,12 @@ from http import HTTPStatus
 
 import pytest
 from pytest_django.asserts import assertRedirects
-from django.test.client import Client
 
 
 pytestmark = pytest.mark.django_db
 
 
-CLIENT = Client()
+CLIENT = pytest.lazy_fixture('client')
 NEWS_DETAIL_URL = pytest.lazy_fixture('news_detail')
 NEWS_HOME_URL = pytest.lazy_fixture('news_home')
 NEWS_LOGIN_URL = pytest.lazy_fixture('login')
@@ -27,7 +26,6 @@ REDIRECT_URL_DELETE_COMMENT = (
 @pytest.mark.parametrize(
     'url, user, expected_status',
     (
-
         (NEWS_LOGIN_URL, CLIENT, HTTPStatus.OK),
         (NEWS_LOGOUT_URL, CLIENT, HTTPStatus.OK),
         (NEWS_SIGNUP_URL, CLIENT, HTTPStatus.OK),
@@ -50,7 +48,7 @@ def test_pages_availability_for_users(url, user, expected_status):
     (
         (COMMENT_EDIT_URL, CLIENT, REDIRECT_URL_EDIT_COMMENT),
         (COMMENT_DELETE_URL, CLIENT, REDIRECT_URL_DELETE_COMMENT),
-    ),
+    )
 )
 def test_redirects(url, user, expected_redirect_fixture):
     assertRedirects(user.get(url), expected_redirect_fixture)
