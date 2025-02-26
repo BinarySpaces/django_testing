@@ -40,12 +40,12 @@ class TestNoteLogic(TestBaseClass):
         self.assertEqual(note.title, self.form_data['title'])
         self.assertEqual(note.text, self.form_data['text'])
         self.assertEqual(note.author, self.note.author)
-        self.assertEqual(note.slug, slugify(expect_slug_generation))
+        self.assertEqual(note.slug, expect_slug_generation)
         return note
 
     def test_slug_auto_generation_if_not_provided(self):
         self.form_data.pop('slug')
-        self.create_note_and_assert(self.form_data['title'])
+        self.create_note_and_assert(slugify(self.form_data['title']))
 
     def test_auth_user_can_create_note(self):
         self.create_note_and_assert(self.form_data['slug'])
