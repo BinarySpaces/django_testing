@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from django.test.client import Client
 from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
@@ -19,13 +20,15 @@ def not_author(django_user_model):
 
 
 @pytest.fixture
-def author_client(client, author):
+def author_client(author):
+    client = Client()
     client.force_login(author)
     return client
 
 
 @pytest.fixture
-def not_author_client(client, not_author):
+def not_author_client(not_author):
+    client = Client()
     client.force_login(not_author)
     return client
 
